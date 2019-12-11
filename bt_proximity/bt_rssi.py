@@ -20,9 +20,13 @@ class BluetoothRSSI(object):
 
     def prep_cmd_pkt(self):
         """Prepares the command packet for requesting RSSI"""
-        reqstr = struct.pack(
-            "6sB17s", bt.str2ba(self.addr), bt.ACL_LINK, "\0" * 17)
-        request = array.array("c", reqstr)
+        # print(bt.str2ba("10:2A:B3:84:93:C6"))
+        # print(bytes("10:2A:B3:84:93:C6","utf-8"))
+        reqstr = struct.pack("6sB17s", 
+                             bt.str2ba("10:2A:B3:84:93:C6"),
+                             bt.ACL_LINK,
+                             b"\0" * 17)
+        request = array.array("b", reqstr)
         handle = fcntl.ioctl(self.hci_fd, bt.HCIGETCONNINFO, request, 1)
         handle = struct.unpack("8xH14x", request.tostring())[0]
         self.cmd_pkt = struct.pack('H', handle)
@@ -48,8 +52,14 @@ class BluetoothRSSI(object):
             rssi = bt.hci_send_req(
                 self.hci_sock, bt.OGF_STATUS_PARAM,
                 bt.OCF_READ_RSSI, bt.EVT_CMD_COMPLETE, 4, self.cmd_pkt)
-            rssi = struct.unpack('b', rssi[3])[0]
-            return rssi
+            # print("RSSI:")
+            # print(rssi)
+            rssi = struct.unpack('4b',rssi)
+            # print(rssi)
+            if rssi == None:
+                return rssi
+            else:
+                return rssi[3]
         except IOError:
             # Happens if connection fails (e.g. device is not in range)
             self.connected = False
