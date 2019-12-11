@@ -53,13 +53,10 @@ class BluetoothRSSI(object):
                 self.hci_sock, bt.OGF_STATUS_PARAM,
                 bt.OCF_READ_RSSI, bt.EVT_CMD_COMPLETE, 4, self.cmd_pkt)
             # print("RSSI:")
-            # print(rssi)
+            if len(rssi) != 4: # case when the pair just turned off the bluetooth
+                return None
             rssi = struct.unpack('4b',rssi)
-            # print(rssi)
-            if rssi == None:
-                return rssi
-            else:
-                return rssi[3]
+            return rssi[3]
         except IOError:
             # Happens if connection fails (e.g. device is not in range)
             self.connected = False
